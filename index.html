@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b2a5b">
+<title>Data Project Manager</title>
+<style>
+:root{--pri:#0b2a5b;--pri2:#16407f;--bg:#f2f5fa;--sur:#fff;--sur2:#e9eff8;--bd:#d9e1ee;--tx:#14213d;--mu:#5b6b84;--err:#c0392b;--ok:#1b7f4b;--sh:0 2px 10px rgba(11,42,91,.08)}
+:root[data-theme="dark"]{--pri:#0a1a3a;--pri2:#3b6fcf;--bg:#0c1424;--sur:#15203a;--sur2:#1d2b4a;--bd:#2a3a5f;--tx:#e8eefc;--mu:#9fb0cf;--err:#ff7b6b;--sh:0 2px 10px rgba(0,0,0,.4)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;max-width:100%;overflow-x:hidden}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari",sans-serif;background:var(--bg);color:var(--tx);font-size:16px;line-height:1.45}
+h1,h2,h3{margin:0}h1{font-size:1.7rem}h3{font-size:1.05rem;margin-bottom:10px}
+.screen{display:none;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+.screen.active{display:block}
+.wrap{max-width:760px;margin:0 auto}
+.pad{padding:16px}.pad-x{padding:0 12px 24px}
+.muted{color:var(--mu)}
+.err{color:var(--err);min-height:1.3em;margin:6px 0;font-size:.95rem}
+.card{background:var(--sur);border:1px solid var(--bd);border-radius:16px;box-shadow:var(--sh);margin-bottom:14px}
+.card.pad{padding:16px}
+
+/* header */
+.bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;background:var(--pri);color:#fff;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top))}
+.bar-title{flex:1;min-width:0}.bar-title h2{font-size:1.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-title small{display:block;opacity:.75;font-size:.8rem}
+.icon{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:10px;min-width:44px;height:44px;padding:0 12px;font-size:1rem;cursor:pointer}
+.icon.dark{background:var(--sur2);color:var(--tx);font-size:1.4rem}
+
+/* controls */
+.btn{min-height:46px;padding:0 18px;border-radius:12px;border:1px solid var(--bd);background:var(--sur);color:var(--tx);font-size:1rem;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--pri2);border-color:var(--pri2);color:#fff}
+.btn.danger{background:var(--err);border-color:var(--err);color:#fff}
+.btn.block{width:100%}.btn.sm{min-height:38px;padding:0 14px}
+.fld{display:block;margin-bottom:14px}.fld>span{display:block;font-size:.9rem;color:var(--mu);margin-bottom:6px}
+input[type=text],input[type=password],input[type=date],input[type=time],input[type=datetime-local],input[type=search],select{width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--sur);color:var(--tx);font:inherit}
+input[type=color]{width:64px;height:44px;border:1px solid var(--bd);border-radius:10px;background:var(--sur);padding:3px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--pri2);outline-offset:1px}
+.search{margin-bottom:14px}
+.switch{display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.switch input{width:48px;height:26px;accent-color:var(--pri2)}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--bd);border-radius:12px;cursor:pointer}
+.choice input{width:20px;height:20px;accent-color:var(--pri2)}
+.choice:has(input:checked){border-color:var(--pri2);background:var(--sur2)}
+
+/* auth */
+.auth{padding:48px 20px;text-align:center}
+.auth .card{text-align:left;margin-top:22px}
+.logo{width:64px;height:64px;margin:0 auto 14px;border-radius:18px;background:var(--pri2);color:#fff;font-size:2rem;font-weight:700;display:grid;place-items:center}
+
+/* dashboard cards */
+.big{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;margin-bottom:14px;padding:22px 20px;border:1px solid var(--bd);border-radius:18px;background:var(--sur);box-shadow:var(--sh);color:var(--tx);text-align:left;cursor:pointer;font:inherit}
+.big b{font-size:1.2rem}.big span{color:var(--mu)}
+.big.accent{background:var(--pri2);border-color:var(--pri2);color:#fff}.big.accent span{color:#dbe6fb}
+
+/* project cards */
+.proj{display:block;width:100%;text-align:left;margin-bottom:10px;padding:14px 16px;border:1px solid var(--bd);border-radius:14px;background:var(--sur);color:var(--tx);box-shadow:var(--sh);font:inherit;cursor:pointer}
+.proj .top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.proj b{overflow-wrap:anywhere}.proj .sub{color:var(--mu);font-size:.9rem;margin-top:4px}
+.tag{flex:none;font-size:.78rem;padding:3px 10px;border-radius:99px;background:var(--sur2);color:var(--tx)}
+.empty{text-align:center;color:var(--mu);padding:36px 12px}
+
+/* workspace */
+.searchbar{display:flex;gap:8px;padding:10px 12px;background:var(--sur2)}.searchbar .search{margin:0;flex:1}
+.selbar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--sur2);position:sticky;top:68px;z-index:15}
+.selbar b{flex:1}
+.selbar[hidden],.searchbar[hidden]{display:none}
+.toolbar{display:flex;gap:8px;overflow-x:auto;padding:12px}
+.chip{flex:none;min-height:42px;padding:0 16px;border-radius:99px;border:1px solid var(--bd);background:var(--sur);color:var(--tx);font:inherit;font-weight:600;font-size:.92rem;cursor:pointer}
+.chip.primary{background:var(--pri2);border-color:var(--pri2);color:#fff}
+.chip.warn{color:var(--err);border-color:var(--err)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--gbd,var(--bd));border-radius:14px;background:var(--gbg,var(--sur));box-shadow:var(--sh)}
+table{border-collapse:collapse;min-width:100%}
+th,td{padding:12px 14px;border-bottom:1px solid var(--gbd,var(--bd));color:var(--gtx,inherit);text-align:left;white-space:nowrap}
+th{background:var(--ghd,var(--sur2));font-size:.9rem}
+td.sr,th.sr{position:sticky;left:0;width:48px;min-width:48px;padding:12px 8px;text-align:center;background:var(--ghd,var(--sur2));user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer;font-weight:600}
+tr.sel td{background:rgba(59,111,207,.22)}tr.sel td.sr{background:var(--pri2);color:#fff}
+
+/* entry */
+.sr-chip{display:inline-block;margin-bottom:12px;padding:3px 12px;border-radius:99px;background:var(--sur2);font-size:.85rem;font-weight:600}
+.entry-actions{display:flex;gap:10px;flex-wrap:wrap}.entry-actions .btn{flex:1;min-width:110px}
+
+[hidden]{display:none!important}
+.swatches{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.swatch{min-height:46px;border:1px solid var(--bd);border-radius:10px;font:inherit;font-weight:600;cursor:pointer;color:#14213d}
+.swatch.dk{color:#fff}
+/* modal + toast */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(5,12,30,.55);display:none;align-items:flex-end;justify-content:center}
+.modal.open{display:flex}
+.modal-box{width:100%;max-width:480px;max-height:90vh;overflow-y:auto;background:var(--sur);color:var(--tx);border-radius:20px 20px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom))}
+.modal-box p{margin:6px 0 14px;color:var(--mu)}
+.frow{display:flex;gap:8px;margin-bottom:10px}.fbtn{flex:1;height:auto;min-height:46px;padding:10px 14px;word-break:break-word}.fdel{width:52px;flex:none;font-size:1.5rem;color:var(--err)}
+.m-actions{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;max-width:90%;padding:12px 18px;border-radius:12px;background:#14213d;color:#fff;box-shadow:var(--sh);opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media(min-width:600px){.modal{align-items:center}.modal-box{border-radius:20px}.m-actions{flex-direction:row-reverse;flex-wrap:wrap}.m-actions .btn{flex:1}}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ERROR -->
+  <section id="s-error" class="screen">
+    <div class="wrap pad">
+      <div class="card pad">
+        <h2 id="errTitle">Something went wrong</h2>
+        <p id="errMsg" class="muted"></p>
+        <button id="errReset" class="btn danger" type="button">Reset app data</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTH -->
+  <section id="s-auth" class="screen">
+    <div class="wrap auth">
+      <div class="logo">D</div>
+      <h1 data-i18n="welcome">Welcome</h1>
+      <p id="authSub" class="muted"></p>
+      <form id="authForm" class="card pad" autocomplete="off">
+        <label class="fld"><span data-i18n="yourName">Your Name</span>
+          <input id="authName" type="text" autocomplete="off" data-i18n-ph="yourName" placeholder="Your Name"></label>
+        <label class="fld"><span data-i18n="password">Password</span>
+          <input id="authPass" type="password" autocomplete="current-password" data-i18n-ph="password" placeholder="Password"></label>
+        <p id="authErr" class="err"></p>
+        <button id="authBtn" class="btn primary block" type="submit">Save Details</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="s-dash" class="screen">
+    <header class="bar">
+      <div class="bar-title">
+        <small data-i18n="welcome">Welcome</small>
+        <h2 id="dName"></h2>
+      </div>
+      <button id="btnSettings" class="icon" type="button" aria-label="Settings" data-i18n="settings">Settings</button>
+    </header>
+    <div class="wrap pad">
+      <button id="cardCompany" class="big" type="button">
+        <b data-i18n="company">Company Project</b><span id="cntCompany"></span>
+      </button>
+      <button id="cardPersonal" class="big" type="button">
+        <b data-i18n="personal">My Personal Project</b><span id="cntPersonal"></span>
+      </button>
+      <button id="cardCreate" class="big accent" type="button">
+        <b data-i18n="createNew">Create New Project</b><span data-i18n="startNew">Start a new project</span>
+      </button>
+      <button id="cardDeleted" class="big" type="button">
+        <b data-i18n="deleted">Deleted Projects</b><span id="cntDeleted"></span>
+      </button>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="s-settings" class="screen">
+    <header class="bar">
+      <button class="icon js-back" type="button" aria-label="Back">&larr;</button>
+      <div class="bar-title"><h2 data-i18n="settings">Settings</h2></div>
+    </header>
+    <div class="wrap pad">
+      <div class="card pad">
+        <label class="fld"><span data-i18n="language">Language</span>
+          <select id="selLang"></select></label>
+      </div>
+      <div class="card pad">
+        <h3 data-i18n="appearance">Appearance</h3>
+        <label class="switch"><span data-i18n="darkMode">Dark mode</span>
+          <input id="chkDark" type="checkbox"></label>
+      </div>
+      <button id="btnLogout" class="btn block" type="button" data-i18n="logout">Log out</button>
+      <p id="verTag" class="muted" style="text-align:center;margin-top:18px"></p>
+    </div>
+  </section>
+
+  <!-- CREATE PROJECT -->
+  <section id="s-create" class="screen">
+    <header class="bar">
+      <button class="icon js-back" type="button" aria-label="Back">&larr;</button>
+      <div class="bar-title"><h2 data-i18n="createNew">Create New Project</h2></div>
+    </header>
+    <div class="wrap pad">
+      <div class="card pad">
+        <label class="fld"><span data-i18n="projDate">Project Date</span>
+          <input id="cpDate" type="date"></label>
+        <label class="fld"><span data-i18n="projName">Project Name</span>
+          <input id="cpName" type="text" autocomplete="off" data-i18n-ph="projName" placeholder="Project Name"></label>
+        <div class="fld"><span data-i18n="projType">Project Type</span>
+          <div class="choices">
+            <label class="choice"><input id="cpTypeCompany" type="radio" name="cpType" value="company"><b data-i18n="company">Company Project</b></label>
+            <label class="choice"><input id="cpTypePersonal" type="radio" name="cpType" value="personal"><b data-i18n="personal">My Personal Project</b></label>
+          </div>
+        </div>
+        <p id="cpErr" class="err"></p>
+        <button id="cpSave" class="btn primary block" type="button" data-i18n="saveDetails">Save Details</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECT LIST -->
+  <section id="s-list" class="screen">
+    <header class="bar">
+      <button class="icon js-back" type="button" aria-label="Back">&larr;</button>
+      <div class="bar-title"><h2 id="listTitle"></h2></div>
+    </header>
+    <div class="wrap pad">
+      <input id="listSearch" class="search" type="search" autocomplete="off" data-i18n-ph="searchProj" placeholder="Search Project">
+      <div id="listBody"></div>
+    </div>
+  </section>
+
+  <!-- DELETED PROJECTS -->
+  <section id="s-deleted" class="screen">
+    <header class="bar">
+      <button class="icon js-back" type="button" aria-label="Back">&larr;</button>
+      <div class="bar-title"><h2 data-i18n="deleted">Deleted Projects</h2></div>
+    </header>
+    <div class="wrap pad">
+      <input id="delSearch" class="search" type="search" autocomplete="off" data-i18n-ph="searchDel" placeholder="Search Deleted Projects">
+      <div id="delBody"></div>
+    </div>
+  </section>
+
+  <!-- WORKSPACE -->
+  <section id="s-work" class="screen">
+    <header class="bar">
+      <button class="icon js-back" type="button" aria-label="Back">&larr;</button>
+      <div class="bar-title"><small id="wsType"></small><h2 id="wsName"></h2></div>
+      <button id="btnWsSearch" class="icon" type="button" aria-label="Search" data-i18n="search">Search</button>
+    </header>
+    <div id="wsSearchBar" class="searchbar" hidden>
+      <input id="wsSearch" class="search" type="search" autocomplete="off" data-i18n-ph="searchData" placeholder="Search data">
+      <button id="btnWsSearchClose" class="icon dark" type="button" aria-label="Close search">&times;</button>
+    </div>
+    <div id="selBar" class="selbar" hidden>
+      <b id="selCount"></b>
+      <button id="btnSelEdit" class="btn sm" type="button" data-i18n="edit">Edit</button>
+      <button id="btnSelDel" class="btn sm danger" type="button" data-i18n="delete">Delete</button>
+      <button id="btnSelClear" class="btn sm" type="button" data-i18n="clear">Clear</button>
+    </div>
+    <div class="toolbar">
+      <button id="btnAddCol" class="chip" type="button" data-i18n="addCol">Add Column</button>
+      <button id="btnAddData" class="chip primary" type="button" data-i18n="addData">Add Data</button>
+      <button id="btnGridColor" class="chip" type="button" data-i18n="gridColor">Grid Color</button>
+      <button id="btnExport" class="chip" type="button" data-i18n="export">Export Data</button>
+      <button id="btnDelAll" class="chip warn" type="button" data-i18n="delAll">Delete All Data</button>
+      <button id="btnDelProj" class="chip warn" type="button" data-i18n="delProj">Delete Project</button>
+    </div>
+    <div id="wsBody" class="pad-x"></div>
+  </section>
+
+  <!-- DATA ENTRY -->
+  <section id="s-entry" class="screen">
+    <header class="bar">
+      <button id="enBack" class="icon" type="button" aria-label="Back">&larr;</button>
+      <div class="bar-title"><small id="enSub"></small><h2 id="enTitle"></h2></div>
+    </header>
+    <div class="wrap pad">
+      <div id="enForm" class="card pad"></div>
+      <div class="entry-actions">
+        <button id="btnEnPrev" class="btn" type="button" data-i18n="prev">Previous</button>
+        <button id="btnEnNext" class="btn" type="button" data-i18n="next">Next</button>
+        <button id="btnEnSave" class="btn primary" type="button" data-i18n="saveFinish">Save &amp; Finish</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- MODAL + TOAST -->
+<div id="modal" class="modal" aria-hidden="true"><div id="modalBox" class="modal-box" role="dialog" aria-modal="true"></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   Data Project Manager - offline, local-only. Single storage key.
+   Sections: Translations | Helpers | Storage | Auth | Navigation |
+   Dashboard | Settings | Projects | Deleted | Workspace | Columns |
+   Row selection | Data entry | Export | Events | Init
+   ===================================================================== */
+
+/* ---------- TRANSLATIONS (add a new language by adding a block) ---------- */
+const LANG_NAMES = { en: 'English', hi: 'हिन्दी' };
+const T = {
+  en: {
+    welcome: 'Welcome', createAcc: 'Create your account to continue', enterPw: 'Enter your password to continue',
+    yourName: 'Your Name', password: 'Password', saveDetails: 'Save Details', login: 'Login',
+    company: 'Company Project', personal: 'My Personal Project', createNew: 'Create New Project',
+    startNew: 'Start a new project', deleted: 'Deleted Projects', projects: 'Projects', rows: 'rows',
+    settings: 'Settings', language: 'Language', appearance: 'Appearance', darkMode: 'Dark mode', logout: 'Log out',
+    projDate: 'Project Date', projName: 'Project Name', projType: 'Project Type',
+    searchProj: 'Search Project', searchDel: 'Search Deleted Projects', searchData: 'Search data', search: 'Search',
+    noResults: 'No results found', noProjects: 'No projects yet', noRows: 'No data yet. Tap Add Data.',
+    noCols: 'No columns yet. Tap Add Column to begin.',
+    addCol: 'Add Column', addData: 'Add Data', export: 'Export Data', delAll: 'Delete All Data', delProj: 'Delete Project',
+    cancel: 'Cancel', delete: 'Delete', edit: 'Edit', clear: 'Clear', selected: 'selected',
+    save: 'Save', saveFinish: 'Save & Finish', next: 'Next', prev: 'Previous', row: 'Row', fillData: 'Fill Data',
+    colName: 'Column Name', colType: 'Value Type', fontStyle: 'Font Style', textColor: 'Text Color', saveCol: 'Save Column',
+    text: 'Text', numeric: 'Numeric', date: 'Date', time: 'Time', datetime: 'Date & Time',
+    normal: 'Normal', bold: 'Bold', italic: 'Italic',
+    integer: 'Whole Number', amount: 'Amount', percent: 'Percentage', phone: 'Phone Number', email: 'Email',
+    yesno: 'Yes / No', dropdown: 'Dropdown List', yes: 'Yes', no: 'No', select: 'Select',
+    colOptions: 'Options (separate with commas)', errOptions: 'Enter at least one option.',
+    errInt: 'Enter a whole number in', errEmail: 'Enter a valid email in', errPhone: 'Enter a valid phone number in',
+    gridColor: 'Grid Color', customColor: 'Custom color', apply: 'Apply', defaultColor: 'Default',
+    white: 'White', black: 'Black', gray: 'Light Gray', dgray: 'Dark Gray', blue: 'Light Blue', yellow: 'Light Yellow', green: 'Light Green',
+    exportedOn: 'Exported On', totalRows: 'Total Rows', colTypes: 'Column Types', exportFormat: 'Choose a file format', excelFile: 'Excel file (.xlsx)', csvFile: 'CSV file (.csv)', newSince: 'New data since last export', newFile: 'New file (all data)', addOld: 'Add to old file (only new data)', noNewData: 'No new data since last export.', errOldFile: 'Could not read this file. Choose the file exported from this project.', newRowsAdded: 'new rows added', savedAs: 'Saved as', oldRowsIn: 'Rows already in old file', fileNote: 'Open this NEW file to see the added data. The old file is not changed.', ok: 'OK', addedTitle: 'Data added', pickFileMsg: 'Add new data to a file you exported before, or make a new file.', fromPhone: 'Choose a file from phone', delExportT: 'Remove this file from the list?', delExportM: 'Only the list entry is removed. The file on your phone is not deleted.', removeBtn: 'Remove', newWord: 'new', savedInDocs: 'Saved in Documents/DataProjectManager', nativeNote: 'The same file was updated. Find it in Documents/DataProjectManager.', sameNameNote: 'If a file with this name already exists on your phone, it may be saved as a copy like (1). Open the newest one.',
+    restore: 'Restore Project', permDel: 'Permanent Delete', chooseRestore: 'Choose where this project should be restored.',
+    deletedOn: 'Deleted', deleteForever: 'Delete Permanently',
+    errName: 'Please enter your name.', errPass: 'Please enter a password.', errWrongPw: 'Wrong password. Try again.',
+    errProjName: 'Please enter a project name.', errProjDate: 'Please choose a project date.', errProjType: 'Please choose a project type.',
+    errColName: 'Please enter a column name.', errDupCol: 'A column with this name already exists.',
+    errNum: 'Enter a valid number in', needCol: 'Create a column first.', nothingSave: 'Nothing to save.', fillOne: 'Fill in at least one value first.',
+    errStorage: 'Could not save data on this phone. Storage may be full.', errGeneric: 'Something went wrong. Your data is safe.',
+    resetTitle: 'Reset app data?', resetMsg: 'This removes everything stored by this app on this phone.', resetBtn: 'Reset',
+    corrupt: 'The saved data could not be read.', saved: 'Saved', exported: 'File exported',
+    cDelAllT: 'Delete all data?', cDelAllM: 'All rows of this project will be removed. Columns and other projects stay safe.',
+    cDelRowsT: 'Delete selected rows?', cDelRowsM: 'Only the selected rows will be deleted.',
+    cDelProjT: 'Delete this project?', cDelProjM: 'It will move to Deleted Projects. You can restore it later.',
+    cPermT: 'Delete permanently?', cPermM: 'This project and all its data will be permanently removed from this phone.',
+    cDiscardT: 'Discard entered rows?', cDiscardM: 'Rows not yet saved will be lost.', discard: 'Discard',
+    restored: 'Project restored', projDeleted: 'Project moved to Deleted Projects', permDone: 'Project permanently deleted'
+  },
+  hi: {
+    welcome: 'स्वागत है', createAcc: 'जारी रखने के लिए अपना खाता बनाएँ', enterPw: 'जारी रखने के लिए पासवर्ड दर्ज करें',
+    yourName: 'आपका नाम', password: 'पासवर्ड', saveDetails: 'विवरण सहेजें', login: 'लॉगिन',
+    company: 'कंपनी प्रोजेक्ट', personal: 'मेरा निजी प्रोजेक्ट', createNew: 'नया प्रोजेक्ट बनाएँ',
+    startNew: 'नया प्रोजेक्ट शुरू करें', deleted: 'हटाए गए प्रोजेक्ट', projects: 'प्रोजेक्ट', rows: 'पंक्तियाँ',
+    settings: 'सेटिंग्स', language: 'भाषा', appearance: 'रूप-रंग', darkMode: 'डार्क मोड', logout: 'लॉग आउट',
+    projDate: 'प्रोजेक्ट की तारीख', projName: 'प्रोजेक्ट का नाम', projType: 'प्रोजेक्ट प्रकार',
+    searchProj: 'प्रोजेक्ट खोजें', searchDel: 'हटाए गए प्रोजेक्ट खोजें', searchData: 'डेटा खोजें', search: 'खोज',
+    noResults: 'कोई परिणाम नहीं मिला', noProjects: 'अभी कोई प्रोजेक्ट नहीं', noRows: 'अभी कोई डेटा नहीं। डेटा जोड़ें दबाएँ।',
+    noCols: 'अभी कोई कॉलम नहीं। शुरू करने के लिए कॉलम जोड़ें दबाएँ।',
+    addCol: 'कॉलम जोड़ें', addData: 'डेटा जोड़ें', export: 'डेटा निर्यात', delAll: 'सारा डेटा हटाएँ', delProj: 'प्रोजेक्ट हटाएँ',
+    cancel: 'रद्द करें', delete: 'हटाएँ', edit: 'संपादित करें', clear: 'साफ़ करें', selected: 'चुने गए',
+    save: 'सहेजें', saveFinish: 'सहेजें और समाप्त करें', next: 'अगला', prev: 'पिछला', row: 'पंक्ति', fillData: 'डेटा भरें',
+    colName: 'कॉलम का नाम', colType: 'मान का प्रकार', fontStyle: 'फ़ॉन्ट शैली', textColor: 'टेक्स्ट रंग', saveCol: 'कॉलम सहेजें',
+    text: 'टेक्स्ट', numeric: 'संख्या', date: 'तारीख', time: 'समय', datetime: 'तारीख और समय',
+    normal: 'सामान्य', bold: 'मोटा', italic: 'तिरछा',
+    integer: 'पूर्ण संख्या', amount: 'राशि', percent: 'प्रतिशत', phone: 'फ़ोन नंबर', email: 'ईमेल',
+    yesno: 'हाँ / नहीं', dropdown: 'ड्रॉपडाउन सूची', yes: 'हाँ', no: 'नहीं', select: 'चुनें',
+    colOptions: 'विकल्प (कॉमा से अलग करें)', errOptions: 'कम से कम एक विकल्प दर्ज करें।',
+    errInt: 'पूर्ण संख्या दर्ज करें:', errEmail: 'मान्य ईमेल दर्ज करें:', errPhone: 'मान्य फ़ोन नंबर दर्ज करें:',
+    gridColor: 'ग्रिड रंग', customColor: 'अपना रंग', apply: 'लागू करें', defaultColor: 'डिफ़ॉल्ट',
+    white: 'सफ़ेद', black: 'काला', gray: 'हल्का स्लेटी', dgray: 'गहरा स्लेटी', blue: 'हल्का नीला', yellow: 'हल्का पीला', green: 'हल्का हरा',
+    exportedOn: 'निर्यात तारीख', totalRows: 'कुल पंक्तियाँ', colTypes: 'कॉलम प्रकार', exportFormat: 'फ़ाइल का प्रकार चुनें', excelFile: 'Excel फ़ाइल (.xlsx)', csvFile: 'CSV फ़ाइल (.csv)', newSince: 'पिछले export के बाद नया डेटा', newFile: 'नई फ़ाइल (सारा डेटा)', addOld: 'पुरानी फ़ाइल में जोड़ें (सिर्फ़ नया डेटा)', noNewData: 'पिछले export के बाद कोई नया डेटा नहीं।', errOldFile: 'यह फ़ाइल पढ़ी नहीं जा सकी। इसी प्रोजेक्ट से export की हुई फ़ाइल चुनें।', newRowsAdded: 'नई पंक्तियाँ जुड़ीं', savedAs: 'इस नाम से सहेजी', oldRowsIn: 'पुरानी फ़ाइल में पहले से पंक्तियाँ', fileNote: 'जुड़ा हुआ डेटा देखने के लिए यह नई फ़ाइल खोलें। पुरानी फ़ाइल नहीं बदलती।', ok: 'ठीक है', addedTitle: 'डेटा जुड़ गया', pickFileMsg: 'पहले export की हुई फ़ाइल में नया डेटा जोड़ें, या नई फ़ाइल बनाएँ।', fromPhone: 'फ़ोन से फ़ाइल चुनें', delExportT: 'इस फ़ाइल को सूची से हटाएँ?', delExportM: 'सिर्फ़ सूची की एंट्री हटेगी। फ़ोन में रखी फ़ाइल नहीं हटेगी।', removeBtn: 'हटाएँ', newWord: 'नई', savedInDocs: 'Documents/DataProjectManager में सहेजी गई', nativeNote: 'वही फ़ाइल अपडेट हुई। इसे Documents/DataProjectManager में देखें।', sameNameNote: 'अगर इस नाम की फ़ाइल फ़ोन में पहले से है, तो ये (1) जैसी कॉपी बन सकती है। सबसे नई वाली खोलें।',
+    restore: 'प्रोजेक्ट पुनर्स्थापित करें', permDel: 'स्थायी रूप से हटाएँ', chooseRestore: 'चुनें कि यह प्रोजेक्ट कहाँ पुनर्स्थापित होगा।',
+    deletedOn: 'हटाया गया', deleteForever: 'स्थायी रूप से हटाएँ',
+    errName: 'कृपया अपना नाम दर्ज करें।', errPass: 'कृपया पासवर्ड दर्ज करें।', errWrongPw: 'गलत पासवर्ड। फिर कोशिश करें।',
+    errProjName: 'कृपया प्रोजेक्ट का नाम दर्ज करें।', errProjDate: 'कृपया तारीख चुनें।', errProjType: 'कृपया प्रोजेक्ट प्रकार चुनें।',
+    errColName: 'कृपया कॉलम का नाम दर्ज करें।', errDupCol: 'इस नाम का कॉलम पहले से मौजूद है।',
+    errNum: 'मान्य संख्या दर्ज करें:', needCol: 'पहले एक कॉलम बनाएँ।', nothingSave: 'सहेजने के लिए कुछ नहीं।', fillOne: 'पहले कम से कम एक मान भरें।',
+    errStorage: 'इस फ़ोन में डेटा सहेजा नहीं जा सका। स्टोरेज भरा हो सकता है।', errGeneric: 'कुछ गलत हो गया। आपका डेटा सुरक्षित है।',
+    resetTitle: 'ऐप डेटा रीसेट करें?', resetMsg: 'इस फ़ोन में इस ऐप का सारा डेटा हट जाएगा।', resetBtn: 'रीसेट',
+    corrupt: 'सहेजा गया डेटा पढ़ा नहीं जा सका।', saved: 'सहेजा गया', exported: 'फ़ाइल निर्यात हुई',
+    cDelAllT: 'सारा डेटा हटाएँ?', cDelAllM: 'इस प्रोजेक्ट की सभी पंक्तियाँ हट जाएँगी। कॉलम और अन्य प्रोजेक्ट सुरक्षित रहेंगे।',
+    cDelRowsT: 'चुनी हुई पंक्तियाँ हटाएँ?', cDelRowsM: 'केवल चुनी हुई पंक्तियाँ हटेंगी।',
+    cDelProjT: 'यह प्रोजेक्ट हटाएँ?', cDelProjM: 'यह हटाए गए प्रोजेक्ट में चला जाएगा। आप इसे बाद में वापस ला सकते हैं।',
+    cPermT: 'स्थायी रूप से हटाएँ?', cPermM: 'यह प्रोजेक्ट और इसका सारा डेटा इस फ़ोन से स्थायी रूप से हट जाएगा।',
+    cDiscardT: 'दर्ज की गई पंक्तियाँ छोड़ें?', cDiscardM: 'जो पंक्तियाँ सहेजी नहीं गईं वे खो जाएँगी।', discard: 'छोड़ें',
+    restored: 'प्रोजेक्ट पुनर्स्थापित हुआ', projDeleted: 'प्रोजेक्ट हटाए गए प्रोजेक्ट में गया', permDone: 'प्रोजेक्ट स्थायी रूप से हटाया गया'
+  }
+};
+
+/* ---------- STATE + HELPERS ---------- */
+const KEY = 'data_project_app';
+const APP_VERSION = '7 - clean export + file list with remove';
+let DB = null;                 // latest app data in memory
+let nav = [];                  // navigation stack [{n, a}]
+let listType = 'company', curId = null, entry = null, loggedIn = false;
+const selected = new Set();
+let lpTimer = null, lpFired = false, toastTimer = null;
+
+/** true when running inside the Android app (Capacitor), false in a normal browser */
+const NATIVE = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const uid = p => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const lang = () => (DB && DB.user && DB.user.settings && T[DB.user.settings.lang]) ? DB.user.settings.lang : 'en';
+const t = k => (T[lang()] && T[lang()][k]) || T.en[k] || k;
+function today() { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function nowTime() { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+const nowDT = () => today() + 'T' + nowTime();
+const autoVal = type => type === 'date' ? today() : type === 'time' ? nowTime() : type === 'datetime' ? nowDT() : '';
+const fmtVal = v => (v == null ? '' : String(v).replace('T', ' '));
+
+function toast(msg) {
+  const el = $('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ---------- MODAL ---------- */
+function closeModal() { $('modal').classList.remove('open'); $('modal').setAttribute('aria-hidden', 'true'); }
+/** btns: [{label, cls, fn, keep}] ; keep=true => modal stays open (fn closes it itself) */
+function modal(title, msg, btns, bodyHtml) {
+  $('modalBox').innerHTML = `<h3>${esc(title)}</h3>${msg ? `<p>${esc(msg)}</p>` : ''}${bodyHtml || ''}<div class="m-actions" id="mAct"></div>`;
+  btns.forEach(b => {
+    const e = document.createElement('button'); e.type = 'button'; e.className = 'btn ' + (b.cls || ''); e.textContent = b.label;
+    e.onclick = () => { if (!b.keep) closeModal(); if (b.fn) b.fn(); };
+    $('mAct').appendChild(e);
+  });
+  $('modal').classList.add('open'); $('modal').setAttribute('aria-hidden', 'false');
+  const first = $('modalBox').querySelector('input,select'); if (first) setTimeout(() => first.focus(), 50);
+}
+function confirmBox(title, msg, okLabel, fn, danger) {
+  modal(title, msg, [{ label: okLabel, cls: danger ? 'danger' : 'primary', fn }, { label: t('cancel') }]);
+}
+
+/* ---------- STORAGE (single key, always reload before write) ---------- */
+function blankData() { return { version: 1, user: null, projects: [], deleted: [] }; }
+function validProject(p) { return p && typeof p === 'object' && p.id && Array.isArray(p.columns) && Array.isArray(p.rows); }
+/** Reads and validates stored data. Throws if corrupted (caller shows error screen). */
+function loadAppData() {
+  const raw = localStorage.getItem(KEY);
+  if (!raw) return blankData();
+  const d = JSON.parse(raw);
+  if (!d || typeof d !== 'object' || !Array.isArray(d.projects) || !Array.isArray(d.deleted)) throw new Error('Invalid structure');
+  if (!d.projects.every(validProject) || !d.deleted.every(validProject)) throw new Error('Invalid project');
+  return d;
+}
+function saveAppData(d) {
+  try { localStorage.setItem(KEY, JSON.stringify(d)); DB = d; return true; }
+  catch (e) { toast(t('errStorage')); return false; }
+}
+/** Load latest -> apply change -> save. Returns true on success. */
+function mutate(fn) {
+  try { const d = loadAppData(); fn(d); return saveAppData(d); }
+  catch (e) { console.error(e); toast(t('errGeneric')); return false; }
+}
+const getProjectById = (id, d) => (d || DB).projects.find(p => p.id === id);
+function updateProject(id, fn) {
+  return mutate(d => { const p = getProjectById(id, d); if (!p) throw new Error('Project missing'); fn(p); p.updatedAt = new Date().toISOString(); });
+}
+/** Move a project to the deleted collection */
+function deleteProject(id) {
+  return mutate(d => {
+    const i = d.projects.findIndex(p => p.id === id); if (i < 0) throw new Error('missing');
+    const p = d.projects.splice(i, 1)[0]; p.deletedAt = new Date().toISOString(); d.deleted.push(p);
+  });
+}
+/** Move a deleted project back as the chosen type, all data intact */
+function restoreProject(id, type) {
+  return mutate(d => {
+    const i = d.deleted.findIndex(p => p.id === id); if (i < 0) throw new Error('missing');
+    const p = d.deleted.splice(i, 1)[0]; delete p.deletedAt; p.type = type; p.updatedAt = new Date().toISOString(); d.projects.push(p);
+  });
+}
+function permanentDelete(id) { return mutate(d => { d.deleted = d.deleted.filter(p => p.id !== id); }); }
+const cur = () => getProjectById(curId);
+
+/* ---------- AUTH ---------- */
+function cyrb53(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
+}
+/** Salted hash. SHA-256 when available, simple fallback otherwise. mode forces a method when verifying. */
+async function hashPw(pw, salt, mode) {
+  const s = salt + ':' + pw;
+  if (mode !== 'c53' && window.crypto && crypto.subtle) {
+    try {
+      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return 'sha256:' + Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+    } catch (e) { /* fall through */ }
+  }
+  return 'c53:' + cyrb53(s);
+}
+function renderAuth() {
+  loggedIn = false; const u = DB.user; applyLang(); show('s-auth');
+  $('authName').value = u ? u.name : ''; $('authName').readOnly = !!u;
+  $('authPass').value = ''; $('authErr').textContent = '';
+  $('authSub').textContent = u ? t('enterPw') : t('createAcc');
+  $('authBtn').textContent = u ? t('login') : t('saveDetails');
+  $('authPass').autocomplete = u ? 'current-password' : 'new-password';
+  setTimeout(() => (u ? $('authPass') : $('authName')).focus(), 60);
+}
+async function submitAuth() {
+  const name = $('authName').value.trim(), pw = $('authPass').value, u = DB.user;
+  try {
+    if (!u) {
+      if (!name) { $('authErr').textContent = t('errName'); return; }
+      if (!pw) { $('authErr').textContent = t('errPass'); return; }
+      const salt = uid('s'), passwordHash = await hashPw(pw, salt);
+      if (!mutate(d => { d.user = { name, salt, passwordHash, settings: { lang: 'en', dark: false } }; })) return;
+    } else {
+      if (!pw) { $('authErr').textContent = t('errPass'); return; }
+      const mode = u.passwordHash.startsWith('c53:') ? 'c53' : 'sha';
+      if (await hashPw(pw, u.salt, mode) !== u.passwordHash) { $('authErr').textContent = t('errWrongPw'); return; }
+    }
+    loggedIn = true; $('authPass').value = ''; applySettings(); go('dash', null, { reset: true });
+  } catch (e) { console.error(e); $('authErr').textContent = t('errGeneric'); }
+}
+
+/* ---------- NAVIGATION ---------- */
+const SCREENS = ['s-error', 's-auth', 's-dash', 's-settings', 's-create', 's-list', 's-deleted', 's-work', 's-entry'];
+function show(id) { closeModal(); SCREENS.forEach(s => $(s).classList.toggle('active', s === id)); window.scrollTo(0, 0); }
+function openEntry(e) {
+  const map = { dash: renderDash, settings: renderSettings, create: renderCreate, list: renderList, deleted: renderDeleted, work: renderWork, entry: renderEntry };
+  try { map[e.n](e.a); } catch (err) { console.error(err); showFatal(t('errGeneric'), String(err && err.message)); }
+}
+function go(name, arg, opts) {
+  if (!loggedIn) return;
+  if (opts && opts.reset) nav = [];
+  nav.push({ n: name, a: arg }); openEntry(nav[nav.length - 1]);
+}
+function back() {
+  if (nav.length > 1) { nav.pop(); openEntry(nav[nav.length - 1]); } else go('dash', null, { reset: true });
+}
+function showFatal(title, msg) { $('errTitle').textContent = title; $('errMsg').textContent = msg || ''; show('s-error'); }
+
+/* ---------- DASHBOARD ---------- */
+const countType = (type) => DB.projects.filter(p => p.type === type).length;
+function renderDash() {
+  show('s-dash'); $('dName').textContent = DB.user.name;
+  $('cntCompany').textContent = `${countType('company')} ${t('projects')}`;
+  $('cntPersonal').textContent = `${countType('personal')} ${t('projects')}`;
+  $('cntDeleted').textContent = `${DB.deleted.length} ${t('projects')}`;
+}
+
+/* ---------- SETTINGS ---------- */
+function applySettings() {
+  const dark = !!(DB && DB.user && DB.user.settings && DB.user.settings.dark);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+}
+function applyLang() {
+  document.documentElement.lang = lang();
+  document.querySelectorAll('[data-i18n]').forEach(e => { e.textContent = t(e.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(e => { e.placeholder = t(e.dataset.i18nPh); });
+}
+function renderSettings() {
+  show('s-settings');
+  $('selLang').innerHTML = Object.keys(T).map(k => `<option value="${k}">${esc(LANG_NAMES[k] || k)}</option>`).join('');
+  $('selLang').value = lang(); $('chkDark').checked = !!DB.user.settings.dark;
+  $('verTag').textContent = 'Version ' + APP_VERSION;
+}
+function saveSetting(key, val) { mutate(d => { d.user.settings[key] = val; }); applySettings(); applyLang(); openEntry(nav[nav.length - 1]); }
+
+/* ---------- PROJECTS ---------- */
+function renderCreate(preType) {
+  show('s-create'); $('cpDate').value = today(); $('cpName').value = ''; $('cpErr').textContent = '';
+  $('cpTypeCompany').checked = preType === 'company'; $('cpTypePersonal').checked = preType === 'personal';
+}
+function saveNewProject() {
+  const date = $('cpDate').value, name = $('cpName').value.trim(), r = document.querySelector('input[name="cpType"]:checked');
+  const err = !name ? t('errProjName') : !date ? t('errProjDate') : !r ? t('errProjType') : '';
+  $('cpErr').textContent = err; if (err) return;
+  const now = new Date().toISOString();
+  const p = { id: uid('p'), name, date, type: r.value, createdAt: now, updatedAt: now, columns: [], rows: [] };
+  if (!mutate(d => { d.projects.push(p); })) return;
+  nav = [{ n: 'dash' }, { n: 'list', a: p.type }, { n: 'work', a: p.id }]; openEntry(nav[2]);
+}
+function projectCard(p, extra) {
+  return `<button class="proj" type="button" data-id="${esc(p.id)}"><div class="top"><b>${esc(p.name)}</b><span class="tag">${esc(t(p.type))}</span></div>
+  <div class="sub">${esc(p.date)} &middot; ${p.rows.length} ${t('rows')}${extra ? ' &middot; ' + esc(extra) : ''}</div></button>`;
+}
+const haystack = p => [p.name, p.date, t(p.type), p.type, ...p.columns.map(c => c.name)].join(' ').toLowerCase();
+function renderList(type) {
+  listType = type; show('s-list'); $('listTitle').textContent = t(type); $('listSearch').value = ''; renderListBody();
+}
+function renderListBody() {
+  const q = $('listSearch').value.trim().toLowerCase();
+  const all = DB.projects.filter(p => p.type === listType);
+  const items = all.filter(p => !q || haystack(p).includes(q));
+  $('listBody').innerHTML = items.length ? items.map(p => projectCard(p)).join('') : `<div class="empty">${t(all.length ? 'noResults' : 'noProjects')}</div>`;
+}
+
+/* ---------- DELETED PROJECTS ---------- */
+function renderDeleted() { show('s-deleted'); $('delSearch').value = ''; renderDeletedBody(); }
+function renderDeletedBody() {
+  const q = $('delSearch').value.trim().toLowerCase();
+  const all = DB.deleted.slice().sort((a, b) => String(b.deletedAt).localeCompare(String(a.deletedAt)));
+  const items = all.filter(p => !q || (haystack(p) + ' ' + new Date(p.deletedAt).toLocaleString()).toLowerCase().includes(q));
+  $('delBody').innerHTML = items.length
+    ? items.map(p => projectCard(p, `${t('deletedOn')} ${new Date(p.deletedAt).toLocaleString()}`)).join('')
+    : `<div class="empty">${t(all.length ? 'noResults' : 'noProjects')}</div>`;
+}
+function deletedActions(id) {
+  modal(getProjectById(id, { projects: DB.deleted }).name, '', [
+    { label: t('restore'), cls: 'primary', fn: () => restoreChooser(id) },
+    { label: t('permDel'), cls: 'danger', fn: () => confirmBox(t('cPermT'), t('cPermM'), t('deleteForever'), () => { if (permanentDelete(id)) { toast(t('permDone')); renderDeleted(); } }, true) },
+    { label: t('cancel') }
+  ]);
+}
+function restoreChooser(id) {
+  const done = type => { if (restoreProject(id, type)) { toast(t('restored')); renderDeleted(); } };
+  modal(t('restore'), t('chooseRestore'), [
+    { label: t('personal'), cls: 'primary', fn: () => done('personal') },
+    { label: t('company'), cls: 'primary', fn: () => done('company') },
+    { label: t('cancel') }
+  ]);
+}
+
+/* ---------- WORKSPACE ---------- */
+function renderWork(id) {
+  curId = id; const p = cur(); if (!p) { back(); return; }
+  show('s-work'); selected.clear();
+  $('wsType').textContent = t(p.type); $('wsName').textContent = p.name;
+  renderGrid(); renderSelBar();
+}
+function rowMatches(p, r, q) { return p.columns.some(c => fmtVal(r.v[c.id]).toLowerCase().includes(q)); }
+function renderGrid() {
+  const p = cur(); if (!p) return;
+  const q = $('wsSearch').value.trim().toLowerCase();
+  if (!p.columns.length) { $('wsBody').innerHTML = `<div class="empty">${t('noCols')}</div>`; return; }
+  const rows = p.rows.map((r, i) => ({ r, sr: i + 1 })).filter(x => !q || rowMatches(p, x.r, q));
+  let html = '';
+  if (!p.rows.length) html = `<div class="empty">${t('noRows')}</div>`;
+  else if (!rows.length) html = `<div class="empty">${t('noResults')}</div>`;
+  const head = `<tr><th class="sr">Sr</th>${p.columns.map(c => `<th>${esc(c.name)}</th>`).join('')}</tr>`;
+  const body = rows.map(x => `<tr data-id="${esc(x.r.id)}" class="${selected.has(x.r.id) ? 'sel' : ''}"><td class="sr" data-id="${esc(x.r.id)}">${x.sr}</td>${
+    p.columns.map(c => `<td style="${cellStyle(c)}">${esc(fmtCol(c, x.r.v[c.id]))}</td>`).join('')}</tr>`).join('');
+  $('wsBody').innerHTML = `<div class="tbl-wrap" style="${gridVars(p)}"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>` + html;
+}
+function cellStyle(c) {
+  let s = ''; if (c.font === 'bold') s += 'font-weight:700;'; if (c.font === 'italic') s += 'font-style:italic;';
+  if (c.color && c.color.toLowerCase() !== '#14213d') s += 'color:' + c.color + ';';
+  return s;
+}
+function toggleSearch(open) {
+  $('wsSearchBar').hidden = !open;
+  if (open) $('wsSearch').focus(); else { $('wsSearch').value = ''; renderGrid(); }
+}
+function deleteAllData() {
+  confirmBox(t('cDelAllT'), t('cDelAllM'), t('delAll'), () => { if (updateProject(curId, p => { p.rows = []; })) { renderWork(curId); } }, true);
+}
+function deleteCurrentProject() {
+  confirmBox(t('cDelProjT'), t('cDelProjM'), t('delProj'), () => { if (deleteProject(curId)) { toast(t('projDeleted')); back(); } }, true);
+}
+
+/* ---------- COLUMNS ---------- */
+const COL_TYPES = ['text', 'numeric', 'integer', 'amount', 'percent', 'phone', 'email', 'date', 'time', 'datetime', 'yesno', 'dropdown'];
+function addColumnModal() {
+  const opt = (arr) => arr.map(x => `<option value="${x}">${t(x)}</option>`).join('');
+  const body = `<label class="fld"><span>${t('colName')}</span><input id="colName" type="text" autocomplete="off" placeholder="Stock"></label>
+  <label class="fld"><span>${t('colType')}</span><select id="colType">${opt(COL_TYPES)}</select></label>
+  <label class="fld" id="colOptsWrap" hidden><span>${t('colOptions')}</span><input id="colOpts" type="text" autocomplete="off" placeholder="A, B, C"></label>
+  <label class="fld"><span>${t('fontStyle')}</span><select id="colFont">${opt(['normal', 'bold', 'italic'])}</select></label>
+  <label class="fld"><span>${t('textColor')}</span><input id="colColor" type="color" value="#14213d"></label><p class="err" id="colErr"></p>`;
+  modal(t('addCol'), '', [{ label: t('saveCol'), cls: 'primary', keep: true, fn: saveColumn }, { label: t('cancel') }], body);
+  $('colType').addEventListener('change', () => { $('colOptsWrap').hidden = $('colType').value !== 'dropdown'; });
+  $('colName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveColumn(); } });
+}
+function saveColumn() {
+  const name = $('colName').value.trim(), p = cur(), type = $('colType').value;
+  if (!name) { $('colErr').textContent = t('errColName'); return; }
+  if (p.columns.some(c => c.name.toLowerCase() === name.toLowerCase())) { $('colErr').textContent = t('errDupCol'); return; }
+  const col = { id: uid('c'), name, type, font: $('colFont').value, color: $('colColor').value, order: p.columns.length };
+  if (type === 'dropdown') {
+    col.options = Array.from(new Set($('colOpts').value.split(/[,\n]/).map(s => s.trim()).filter(Boolean)));
+    if (!col.options.length) { $('colErr').textContent = t('errOptions'); return; }
+  }
+  if (updateProject(curId, pr => { pr.columns.push(col); })) { closeModal(); renderGrid(); }
+}
+
+/* ---------- GRID COLOR (per project) ---------- */
+const GRID_PRESETS = [['white', '#ffffff'], ['black', '#000000'], ['gray', '#f1f1f1'], ['dgray', '#1e1e1e'], ['blue', '#e3f0ff'], ['yellow', '#fff8d6'], ['green', '#e4f6e8']];
+const hexRgb = hx => { const n = parseInt(hx.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+function shade(hx, amt) {
+  return '#' + hexRgb(hx).map(v => Math.max(0, Math.min(255, Math.round(v + amt))).toString(16).padStart(2, '0')).join('');
+}
+/** CSS variables for the grid: background + automatically readable text/header/border colors */
+function gridVars(p) {
+  if (!/^#[0-9a-f]{6}$/i.test(p.gridBg || '')) return '';
+  const [r, g, b] = hexRgb(p.gridBg), light = (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6;
+  return `--gbg:${p.gridBg};--gtx:${light ? '#14213d' : '#ffffff'};--ghd:${shade(p.gridBg, light ? -18 : 28)};--gbd:${light ? 'rgba(0,0,0,.18)' : 'rgba(255,255,255,.25)'}`;
+}
+function setGridBg(hx) {
+  if (updateProject(curId, p => { if (hx) p.gridBg = hx; else delete p.gridBg; })) { closeModal(); renderGrid(); }
+}
+function gridColorModal() {
+  const p = cur();
+  const sw = GRID_PRESETS.map(([k, hx]) => `<button type="button" class="swatch${k === 'black' || k === 'dgray' ? ' dk' : ''}" data-bg="${hx}" style="background:${hx}">${t(k)}</button>`).join('');
+  const body = `<div class="swatches">${sw}</div><label class="fld"><span>${t('customColor')}</span><input id="gridCustom" type="color" value="${esc(p.gridBg || '#ffffff')}"></label>`;
+  modal(t('gridColor'), '', [
+    { label: t('apply'), cls: 'primary', keep: true, fn: () => setGridBg($('gridCustom').value) },
+    { label: t('defaultColor'), fn: () => setGridBg('') },
+    { label: t('cancel') }
+  ], body);
+  $('modalBox').querySelector('.swatches').addEventListener('click', e => { const b = e.target.closest('[data-bg]'); if (b) setGridBg(b.dataset.bg); });
+}
+
+/* ---------- ROW SELECTION ---------- */
+function toggleSel(id) { selected.has(id) ? selected.delete(id) : selected.add(id); renderGrid(); renderSelBar(); }
+function renderSelBar() {
+  $('selBar').hidden = selected.size === 0; $('selCount').textContent = `${selected.size} ${t('selected')}`;
+}
+function clearSel() { selected.clear(); renderGrid(); renderSelBar(); }
+function deleteSelected() {
+  confirmBox(t('cDelRowsT'), t('cDelRowsM'), t('delete'), () => {
+    const ids = new Set(selected);
+    if (updateProject(curId, p => { p.rows = p.rows.filter(r => !ids.has(r.id)); })) renderWork(curId);
+  }, true);
+}
+function bindRowSelection() {
+  const body = $('wsBody');
+  body.addEventListener('pointerdown', e => {
+    const sr = e.target.closest('td.sr'); if (!sr) return;
+    lpFired = false; clearTimeout(lpTimer);
+    lpTimer = setTimeout(() => { lpFired = true; toggleSel(sr.dataset.id); }, 500);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave', 'pointermove'].forEach(ev => body.addEventListener(ev, e => {
+    if (ev === 'pointermove' && Math.abs(e.movementX) + Math.abs(e.movementY) < 3) return; clearTimeout(lpTimer);
+  }));
+  body.addEventListener('contextmenu', e => { if (e.target.closest('td.sr')) e.preventDefault(); });
+  body.addEventListener('click', e => {
+    if (lpFired) { lpFired = false; return; }
+    const tr = e.target.closest('tr[data-id]'); if (tr && selected.size) toggleSel(tr.dataset.id);
+  });
+}
+
+/* ---------- DATA ENTRY (add + edit share one screen) ---------- */
+function newItem(p) { const v = {}; p.columns.forEach(c => { v[c.id] = autoVal(c.type); }); return { id: null, vals: v, touched: false }; }
+function startEntry(mode) {
+  const p = cur();
+  if (!p.columns.length) { toast(t('needCol')); return; }
+  if (mode === 'add') entry = { mode, idx: 0, items: [newItem(p)] };
+  else {
+    const rows = p.rows.filter(r => selected.has(r.id)); if (!rows.length) return;
+    entry = { mode, idx: 0, items: rows.map(r => ({ id: r.id, vals: Object.assign({}, r.v), touched: true })) };
+  }
+  go('entry');
+}
+const isAuto = ty => ty === 'date' || ty === 'time' || ty === 'datetime';
+const hasManual = p => p.columns.some(c => !isAuto(c.type));
+/** One input/select for a column, chosen by value type */
+function entryField(c, i, val, enter) {
+  const common = `data-c="${esc(c.id)}" data-i="${i}"`;
+  if (c.type === 'yesno' || c.type === 'dropdown') {
+    const opts = c.type === 'yesno' ? [['Yes', t('yes')], ['No', t('no')]] : (c.options || []).map(o => [o, o]);
+    return `<select ${common}><option value="">${t('select')}</option>${opts.map(o => `<option value="${esc(o[0])}"${o[0] === val ? ' selected' : ''}>${esc(o[1])}</option>`).join('')}</select>`;
+  }
+  const kind = { date: 'date', time: 'time', datetime: 'datetime-local', phone: 'tel', email: 'email' }[c.type] || 'text';
+  const mode = c.type === 'integer' ? 'numeric' : ['numeric', 'amount', 'percent'].includes(c.type) ? 'decimal' : '';
+  return `<input ${common} type="${kind}" ${mode ? `inputmode="${mode}"` : ''} enterkeyhint="${enter}" autocomplete="off" placeholder="${t('fillData')}" value="${esc(val)}">`;
+}
+function renderEntry() {
+  const p = cur(); if (!p || !entry) { back(); return; }
+  show('s-entry'); const it = entry.items[entry.idx], last = entry.items.length - 1;
+  const rowNo = entry.mode === 'add' ? p.rows.length + entry.idx + 1 : p.rows.findIndex(r => r.id === it.id) + 1;
+  $('enTitle').textContent = `${t('row')} ${rowNo}`;
+  $('enSub').textContent = p.name + (entry.mode === 'edit' && last ? ` (${entry.idx + 1}/${last + 1})` : '');
+  $('enForm').innerHTML = `<span class="sr-chip">Sr ${rowNo}</span>` + p.columns.map((c, i) => {
+    const enter = i < p.columns.length - 1 ? 'next' : (entry.mode === 'add' || entry.idx < last ? 'next' : 'done');
+    const v = it.vals[c.id] == null ? '' : it.vals[c.id];
+    return `<label class="fld"><span>${esc(c.name)}</span>${entryField(c, i, v, enter)}</label>`;
+  }).join('');
+  $('btnEnPrev').hidden = entry.idx === 0;
+  $('btnEnNext').hidden = entry.mode === 'edit' && entry.idx >= last;
+  const first = $('enForm').querySelector('input,select'); if (first) setTimeout(() => first.focus(), 50);
+}
+/** Returns {c, msg} for the first invalid value in the row, or null */
+function badValue(p, it) {
+  for (const c of p.columns) {
+    const v = String(it.vals[c.id] == null ? '' : it.vals[c.id]).trim(); if (v === '') continue;
+    if (['numeric', 'amount', 'percent'].includes(c.type) && !isFinite(Number(v))) return { c, msg: `${t('errNum')} ${c.name}` };
+    if (c.type === 'integer' && !/^-?\d+$/.test(v)) return { c, msg: `${t('errInt')} ${c.name}` };
+    if (c.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return { c, msg: `${t('errEmail')} ${c.name}` };
+    if (c.type === 'phone') { const d = v.replace(/\D/g, '').length; if (!/^[+()\-\s\d]+$/.test(v) || d < 5 || d > 15) return { c, msg: `${t('errPhone')} ${c.name}` }; }
+  }
+  return null;
+}
+function flagBad(b) {
+  toast(b.msg);
+  const inp = $('enForm').querySelector(`[data-c="${b.c.id}"]`); if (inp) inp.focus();
+}
+function entryNext() {
+  const p = cur(), it = entry.items[entry.idx], bad = badValue(p, it);
+  if (bad) { flagBad(bad); return; }
+  if (entry.mode === 'add') {
+    if (!it.touched && hasManual(p)) { toast(t('fillOne')); return; }
+    if (entry.idx === entry.items.length - 1) entry.items.push(newItem(p));
+  }
+  entry.idx++; renderEntry();
+}
+function entryPrev() { if (entry.idx > 0) { entry.idx--; renderEntry(); } }
+function entrySave() {
+  const p = cur(); let items = entry.items;
+  if (entry.mode === 'add') {
+    const manual = hasManual(p);
+    items = items.filter((it, i) => it.touched || (!manual && (i < items.length - 1 || items.length === 1)));
+  }
+  if (!items.length) { toast(t('nothingSave')); return; }
+  for (const it of items) {
+    const bad = badValue(p, it);
+    if (bad) { entry.idx = entry.items.indexOf(it); renderEntry(); setTimeout(() => flagBad(bad), 80); return; }
+  }
+  const ok = updateProject(curId, pr => {
+    if (entry.mode === 'add') items.forEach(it => pr.rows.push({ id: uid('r'), v: it.vals }));
+    else items.forEach(it => { const r = pr.rows.find(x => x.id === it.id); if (r) r.v = it.vals; });
+  });
+  if (ok) { entry = null; back(); toast(t('saved')); }
+}
+function entryBack() {
+  if (entry && entry.mode === 'add' && entry.items.some(i => i.touched)) {
+    confirmBox(t('cDiscardT'), t('cDiscardM'), t('discard'), () => { entry = null; back(); }, true);
+  } else { entry = null; back(); }
+}
+function bindEntry() {
+  const f = $('enForm');
+  f.addEventListener('input', e => {
+    const c = e.target.dataset.c; if (!c || !entry) return;
+    const it = entry.items[entry.idx]; it.vals[c] = e.target.value; it.touched = true;
+  });
+  f.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.target.dataset.i === undefined) return;
+    e.preventDefault();
+    const inputs = f.querySelectorAll('input,select'), i = +e.target.dataset.i;
+    if (i < inputs.length - 1) { const n = inputs[i + 1]; n.focus(); try { n.select(); } catch (x) { /* not selectable */ } }
+    else if (entry.mode === 'edit' && entry.idx >= entry.items.length - 1) entrySave();
+    else entryNext();
+  });
+}
+
+/* ---------- EXPORT (CSV) ---------- */
+function fmtCol(c, v) { const s = fmtVal(v); return c.type === 'percent' && s !== '' ? s + '%' : s; }
+
+/* Minimal .xlsx writer (no libraries): XML parts packed in an uncompressed ZIP */
+function crc32(buf) {
+  if (!crc32.t) { crc32.t = []; for (let n = 0, c; n < 256; n++) { c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; crc32.t[n] = c >>> 0; } }
+  let crc = -1; for (let i = 0; i < buf.length; i++) crc = crc32.t[(crc ^ buf[i]) & 255] ^ (crc >>> 8);
+  return (crc ^ -1) >>> 0;
+}
+function zipStore(files) {
+  const enc = new TextEncoder(), chunks = [], central = [];
+  const u16 = n => [n & 255, (n >> 8) & 255], u32 = n => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
+  let offset = 0, centralSize = 0;
+  files.forEach(f => {
+    const name = enc.encode(f.name), data = enc.encode(f.data), crc = crc32(data), len = data.length;
+    const local = Uint8Array.from([0x50, 0x4b, 3, 4, ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(len), ...u32(len), ...u16(name.length), ...u16(0)]);
+    chunks.push(local, name, data);
+    const cen = Uint8Array.from([0x50, 0x4b, 1, 2, ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(len), ...u32(len), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(offset)]);
+    central.push(cen, name); centralSize += cen.length + name.length;
+    offset += local.length + name.length + len;
+  });
+  const end = Uint8Array.from([0x50, 0x4b, 5, 6, 0, 0, 0, 0, ...u16(files.length), ...u16(files.length), ...u32(centralSize), ...u32(offset), ...u16(0)]);
+  return new Blob(chunks.concat(central, [end]), { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+const xmlEsc = s => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function colLetter(i) { let s = ''; for (i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + (i - 1) % 26) + s; return s; }
+/** rows: arrays of cells. cell = value | {v, b, i, c} (b = bold, i = italic, c = '#rrggbb' text color). Column widths fit the content. */
+function buildXlsx(rows, sheetName) {
+  const widths = [], keys = [];
+  const fonts = ['<font><sz val="11"/><name val="Calibri"/></font>'];
+  const xfs = ['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'];
+  const styleOf = o => {
+    const c = /^#[0-9a-f]{6}$/i.test(o.c || '') ? o.c : null;
+    if (!o.b && !o.i && !c) return 0;
+    const key = `${o.b ? 1 : 0}${o.i ? 1 : 0}${c || ''}`; let k = keys.indexOf(key);
+    if (k < 0) {
+      keys.push(key); k = keys.length - 1;
+      fonts.push(`<font>${o.b ? '<b/>' : ''}${o.i ? '<i/>' : ''}<sz val="11"/>${c ? `<color rgb="FF${c.slice(1).toUpperCase()}"/>` : ''}<name val="Calibri"/></font>`);
+      xfs.push(`<xf numFmtId="0" fontId="${fonts.length - 1}" fillId="0" borderId="0" xfId="0" applyFont="1"/>`);
+    }
+    return k + 1;
+  };
+  const xmlRows = rows.map((row, r) => {
+    const cells = row.map((cell, j) => {
+      const o = (cell !== null && typeof cell === 'object') ? cell : { v: cell };
+      if (o.v === '' || o.v == null) return '';
+      if (!o.nw) widths[j] = Math.max(widths[j] || 0, String(o.v).length);
+      const ref = colLetter(j) + (r + 1), s = styleOf(o), st = s ? ` s="${s}"` : '';
+      return typeof o.v === 'number' && isFinite(o.v)
+        ? `<c r="${ref}"${st}><v>${o.v}</v></c>`
+        : `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(o.v)}</t></is></c>`;
+    }).join('');
+    return `<row r="${r + 1}">${cells}</row>`;
+  }).join('');
+  const cols = widths.map((w, j) => `<col min="${j + 1}" max="${j + 1}" width="${Math.min(60, Math.max(10, Math.round(w * 1.2 + 2)))}" customWidth="1"/>`).join('');
+  const NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main', RNS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const REL = RNS, hd = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  return zipStore([
+    { name: '[Content_Types].xml', data: hd + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
+    { name: '_rels/.rels', data: hd + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+    { name: 'xl/workbook.xml', data: hd + `<workbook xmlns="${NS}" xmlns:r="${RNS}"><sheets><sheet name="${xmlEsc(sheetName)}" sheetId="1" r:id="rId1"/></sheets></workbook>` },
+    { name: 'xl/_rels/workbook.xml.rels', data: hd + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${REL}/styles" Target="styles.xml"/></Relationships>` },
+    { name: 'xl/styles.xml', data: hd + `<styleSheet xmlns="${NS}"><fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>` },
+    { name: 'xl/worksheets/sheet1.xml', data: hd + `<worksheet xmlns="${NS}"><cols>${cols}</cols><sheetData>${xmlRows}</sheetData></worksheet>` }
+  ]);
+}
+
+/* ---------- READ AN OLD EXPORT (.xlsx / .csv) ---------- */
+/** Reads the sheet XML parts of an .xlsx (stored or deflate-compressed ZIP) */
+async function unzipText(buf) {
+  const dv = new DataView(buf), u8 = new Uint8Array(buf), dec = new TextDecoder(), out = {};
+  let e = u8.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('not a zip');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true);
+  for (let k = 0; k < n; k++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = dec.decode(u8.subarray(p + 46, p + 46 + nl)); p += 46 + nl + el + cl;
+    if (!/^xl\/(worksheets\/sheet\d+\.xml|sharedStrings\.xml)$/.test(name)) continue;
+    const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+    let data = u8.subarray(start, start + csize);
+    if (method === 8) data = new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    else if (method !== 0) throw new Error('unsupported zip');
+    out[name] = dec.decode(data);
+  }
+  return out;
+}
+function parseSharedStrings(xml) {
+  const d = new DOMParser().parseFromString(xml, 'application/xml');
+  return Array.from(d.getElementsByTagName('si')).map(si => Array.from(si.getElementsByTagName('t')).filter(x => x.parentNode.nodeName !== 'rPh').map(x => x.textContent).join(''));
+}
+function parseSheetXml(xml, shared) {
+  const d = new DOMParser().parseFromString(xml, 'application/xml');
+  return Array.from(d.getElementsByTagName('row')).map(row => {
+    const arr = [];
+    Array.from(row.getElementsByTagName('c')).forEach(c => {
+      let col = 0; (c.getAttribute('r') || '').replace(/[0-9]/g, '').split('').forEach(ch => { col = col * 26 + (ch.charCodeAt(0) - 64); }); col--;
+      const ty = c.getAttribute('t'), vEl = c.getElementsByTagName('v')[0]; let val = '';
+      if (ty === 'inlineStr') val = Array.from(c.getElementsByTagName('t')).map(x => x.textContent).join('');
+      else if (vEl) { const raw = vEl.textContent; val = ty === 's' ? (shared[+raw] || '') : (ty === 'str' || ty === 'b' || ty === 'e' || raw === '' || !isFinite(Number(raw))) ? raw : Number(raw); }
+      arr[col >= 0 ? col : arr.length] = val;
+    });
+    return Array.from(arr, x => x == null ? '' : x);
+  });
+}
+function parseCsv(text) {
+  text = text.replace(/^\ufeff/, '');
+  const first = text.split(/\r?\n/)[0] || '';
+  const d = [',', ';', '\t'].sort((a, b) => first.split(b).length - first.split(a).length)[0];
+  const rows = []; let row = [], f = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === d) { row.push(f); f = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(f); f = ''; rows.push(row); row = []; }
+    else f += ch;
+  }
+  if (f !== '' || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+async function readOldFile(file) {
+  const buf = await file.arrayBuffer();
+  if (/\.csv$/i.test(file.name)) return { kind: 'csv', rows: parseCsv(new TextDecoder().decode(buf)) };
+  const files = await unzipText(buf);
+  const key = files['xl/worksheets/sheet1.xml'] ? 'xl/worksheets/sheet1.xml' : Object.keys(files).filter(k => /worksheets/.test(k)).sort()[0];
+  if (!key) throw new Error('no sheet');
+  return { kind: 'xlsx', rows: parseSheetXml(files[key], files['xl/sharedStrings.xml'] ? parseSharedStrings(files['xl/sharedStrings.xml']) : []) };
+}
+/** Matches an old file's rows to this project's columns by header name (header row starts with "Sr"). Returns null if not recognised. */
+function alignOld(p, matrix) {
+  const h = matrix.findIndex((r, i) => i < 15 && String(r[0] == null ? '' : r[0]).trim().toLowerCase() === 'sr');
+  if (h < 0) return null;
+  const names = matrix[h].map(x => String(x).trim().toLowerCase());
+  const idx = p.columns.map(c => names.indexOf(c.name.trim().toLowerCase()));
+  // skip empty rows and any repeated header row ("Sr" in the first cell) so column names appear only once
+  return matrix.slice(h + 1).filter(r => r.some(x => String(x).trim() !== '') && String(r[0] == null ? '' : r[0]).trim().toLowerCase() !== 'sr').map(r => idx.map(k => k < 0 || r[k] == null ? '' : r[k]));
+}
+
+/* ---------- EXPORT: only columns + rows, with each column's font style and text color ---------- */
+const csvCell = v => { const s = fmtVal(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function styledCell(c, val) {
+  let v = val == null ? '' : val; const s = String(v).trim();
+  if (['numeric', 'integer', 'amount'].includes(c.type) && s !== '' && isFinite(Number(s))) v = Number(s);
+  return { v, b: c.font === 'bold', i: c.font === 'italic', c: c.color && c.color.toLowerCase() !== '#14213d' ? c.color : null };
+}
+/** Header + old rows (already in the file, aligned to columns) + rows to add. Sr is renumbered 1..N. */
+function buildOutRows(p, oldData, list) {
+  // Row 1: project name. Row 2: column headers. Then the data rows.
+  const out = [[{ v: p.name, b: true, nw: true }], [{ v: 'Sr', b: true }].concat(p.columns.map(c => ({ v: c.name, b: true })))];
+  let sr = 1;
+  oldData.forEach(vals => out.push([sr++].concat(p.columns.map((c, j) => styledCell(c, vals[j])))));
+  list.forEach(r => out.push([sr++].concat(p.columns.map(c => styledCell(c, fmtCol(c, r.v[c.id]))))));
+  return out;
+}
+function rowsToCsv(rows) {
+  return '\ufeff' + rows.map(r => r.map(c => csvCell(c !== null && typeof c === 'object' ? c.v : c)).join(',')).join('\r\n');
+}
+/** Saves a file. Returns true if saved. Claude viewer uses the downloads capability; normal browsers use a standard download. */
+/** Android app: write straight into Documents/DataProjectManager. Same name = the same file is overwritten. */
+let fsPlugin = null;
+async function saveNative(fname, data) {
+  fsPlugin = fsPlugin || window.Capacitor.registerPlugin('Filesystem');
+  const buf = data instanceof Blob ? await data.arrayBuffer() : new TextEncoder().encode(data).buffer;
+  const bytes = new Uint8Array(buf); let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  try { await fsPlugin.requestPermissions(); } catch (e) { /* not needed on newer Android */ }
+  await fsPlugin.writeFile({ path: 'DataProjectManager/' + fname, data: btoa(bin), directory: 'DOCUMENTS', recursive: true });
+}
+async function saveFile(fname, data) {
+  if (NATIVE) {
+    try { await saveNative(fname, data); return true; }
+    catch (e) { console.error(e); modal(t('export'), `${t('errGeneric')} (${e && e.message ? e.message : e})`, [{ label: t('ok'), cls: 'primary' }]); return false; }
+  }
+  try {
+    const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
+    if (dl) {
+      try { await dl.save({ filename: fname, data }); return true; }
+      catch (e) { if (!e || e.code !== 'declined') toast(t('errGeneric')); return false; }
+    }
+  } catch (e) { /* fall through to normal download */ }
+  const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  return true;
+}
+const exportedSet = p => new Set([...(p.exportedIds || []), ...(p.exports || []).flatMap(e => e.rowIds || [])]);
+const sheetNameOf = p => (p.name.replace(/[\[\]:*?\/\\]/g, '').trim() || 'Project').slice(0, 31);
+/** Remember each exported file (name, format, which rows it holds) so the next export can add only new rows to it */
+function recordExport(name, kind, rowIds) {
+  updateProject(curId, p => {
+    p.exports = p.exports || []; const now = new Date().toISOString();
+    const e = p.exports.find(x => x.name === name && x.kind === kind);
+    if (e) { e.rowIds = rowIds; e.savedAt = now; } else p.exports.push({ id: uid('x'), name, kind, rowIds, savedAt: now });
+  });
+}
+async function doExport(kind) {
+  const p = cur(), rows = buildOutRows(p, [], p.rows);
+  const fname = (p.name.replace(/[^\w\u0900-\u097F\- ]+/g, '').trim() || 'project') + (kind === 'xlsx' ? '.xlsx' : '.csv');
+  const ok = await saveFile(fname, kind === 'xlsx' ? buildXlsx(rows, sheetNameOf(p)) : rowsToCsv(rows));
+  if (ok) { recordExport(fname, kind, p.rows.map(r => r.id)); toast(NATIVE ? t('savedInDocs') : t('exported')); }
+}
+function resultModal(msg) {
+  modal(t('addedTitle'), msg, [{ label: t('ok'), cls: 'primary' }]);
+  $('modalBox').querySelector('p').style.whiteSpace = 'pre-line';
+}
+/** Add only the new rows to a file exported earlier from this app (no file picking needed) */
+async function addToFile(recId) {
+  const p = cur(), rec = (p.exports || []).find(x => x.id === recId); if (!rec) return;
+  const seen = new Set(rec.rowIds), fresh = p.rows.filter(r => !seen.has(r.id));
+  if (!fresh.length) { toast(t('noNewData')); return; }
+  const had = p.rows.filter(r => seen.has(r.id));
+  const rows = buildOutRows(p, had.map(r => p.columns.map(c => fmtCol(c, r.v[c.id]))), fresh);
+  const ok = await saveFile(rec.name, rec.kind === 'xlsx' ? buildXlsx(rows, sheetNameOf(p)) : rowsToCsv(rows));
+  if (ok) {
+    recordExport(rec.name, rec.kind, p.rows.map(r => r.id));
+    resultModal(`${fresh.length} ${t('newRowsAdded')}.\n${t('oldRowsIn')}: ${had.length}\n${t('savedAs')}: ${rec.name}\n\n${NATIVE ? t('nativeNote') : t('sameNameNote')}`);
+  }
+}
+/** Name for the merged copy (browsers cannot overwrite the old file, so the copy gets a clear new name) */
+function updatedName(oldName, kind) {
+  const m = oldName.match(/^(.*?)(\.[^.]+)$/);
+  const base = (m ? m[1] : oldName).replace(/ \(\d+\)$/, '').replace(/ updated \d{4}-\d{2}-\d{2} \d{2}-\d{2}$/, '');
+  const d = new Date();
+  return `${base} updated ${today()} ${pad(d.getHours())}-${pad(d.getMinutes())}${kind === 'xlsx' ? '.xlsx' : '.csv'}`;
+}
+/** Choose an earlier export file; save a copy of it with only the new rows added */
+function pickOldFile() {
+  const p = cur(), seen = exportedSet(p), fresh = p.rows.filter(r => !seen.has(r.id));
+  if (!fresh.length) { toast(t('noNewData')); return; }
+  const inp = document.createElement('input'); inp.type = 'file'; inp.style.display = 'none';
+  inp.accept = '.xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  const done = () => setTimeout(() => inp.remove(), 1000);
+  inp.addEventListener('cancel', done);
+  inp.addEventListener('change', async () => {
+    const f = inp.files && inp.files[0]; done(); if (!f) return;
+    try {
+      const old = await readOldFile(f), data = alignOld(p, old.rows);
+      if (!data) { modal(t('export'), t('errOldFile'), [{ label: t('ok'), cls: 'primary' }]); return; }
+      const rows = buildOutRows(p, data, fresh), name = updatedName(f.name, old.kind);
+      const ok = await saveFile(name, old.kind === 'xlsx' ? buildXlsx(rows, sheetNameOf(p)) : rowsToCsv(rows));
+      if (ok) {
+        recordExport(name, old.kind, p.rows.map(r => r.id));
+        modal(t('addedTitle'), `${fresh.length} ${t('newRowsAdded')}.\n${t('oldRowsIn')}: ${data.length}\n${t('savedAs')}: ${name}\n\n${t('fileNote')}`, [{ label: t('ok'), cls: 'primary' }]);
+        $('modalBox').querySelector('p').style.whiteSpace = 'pre-line';
+      }
+    } catch (e) { console.error(e); modal(t('export'), `${t('errOldFile')} (${e && e.message ? e.message : e})`, [{ label: t('ok'), cls: 'primary' }]); }
+  });
+  document.body.appendChild(inp); inp.click();
+}
+function formatModal() {
+  modal(t('export'), t('exportFormat'), [
+    { label: t('excelFile'), cls: 'primary', fn: () => doExport('xlsx') },
+    { label: t('csvFile'), cls: 'primary', fn: () => doExport('csv') },
+    { label: t('cancel') }
+  ]);
+}
+/** Export Data button: lists files exported before (tap one to add only new data; X removes it from the list), or make a new file */
+function exportModal() {
+  const p = cur(); if (!p.columns.length) { toast(t('needCol')); return; }
+  const recs = (p.exports || []).slice().sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt))).slice(0, 5);
+  if (!recs.length) { formatModal(); return; }
+  const list = recs.map(rec => {
+    const seen = new Set(rec.rowIds), n = p.rows.filter(r => !seen.has(r.id)).length;
+    return `<div class="frow"><button type="button" class="btn primary fbtn" data-add="${esc(rec.id)}">${esc(`${rec.name} (${rec.rowIds.length} ${t('rows')}, +${n} ${t('newWord')})`)}</button>
+      <button type="button" class="btn fdel" data-del="${esc(rec.id)}" aria-label="${t('removeBtn')}">&times;</button></div>`;
+  }).join('');
+  modal(t('export'), t('pickFileMsg'), [{ label: t('newFile'), fn: formatModal }, { label: t('cancel') }], list);
+  $('modalBox').querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { closeModal(); addToFile(b.dataset.add); }));
+  $('modalBox').querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+    confirmBox(t('delExportT'), t('delExportM'), t('removeBtn'), () => {
+      if (updateProject(curId, pr => { pr.exports = (pr.exports || []).filter(e => e.id !== b.dataset.del); })) exportModal();
+    }, true);
+  }));
+}
+
+/* ---------- EVENTS ---------- */
+function bindEvents() {
+  document.querySelectorAll('.js-back').forEach(b => b.addEventListener('click', back));
+  $('errReset').onclick = () => confirmBox(t('resetTitle'), t('resetMsg'), t('resetBtn'), () => { localStorage.removeItem(KEY); location.reload(); }, true);
+  $('authForm').addEventListener('submit', e => { e.preventDefault(); submitAuth(); });
+  $('btnSettings').onclick = () => go('settings');
+  $('cardCompany').onclick = () => go('list', 'company');
+  $('cardPersonal').onclick = () => go('list', 'personal');
+  $('cardCreate').onclick = () => go('create');
+  $('cardDeleted').onclick = () => go('deleted');
+  $('selLang').onchange = e => saveSetting('lang', e.target.value);
+  $('chkDark').onchange = e => saveSetting('dark', e.target.checked);
+  $('btnLogout').onclick = () => { nav = []; renderAuth(); };
+  $('cpSave').onclick = saveNewProject;
+  $('cpName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveNewProject(); } });
+  $('listSearch').oninput = renderListBody;
+  $('delSearch').oninput = renderDeletedBody;
+  $('listBody').onclick = e => { const c = e.target.closest('[data-id]'); if (c) go('work', c.dataset.id); };
+  $('delBody').onclick = e => { const c = e.target.closest('[data-id]'); if (c) deletedActions(c.dataset.id); };
+  $('btnWsSearch').onclick = () => toggleSearch($('wsSearchBar').hidden);
+  $('btnWsSearchClose').onclick = () => toggleSearch(false);
+  $('wsSearch').oninput = renderGrid;
+  $('btnAddCol').onclick = addColumnModal;
+  $('btnAddData').onclick = () => startEntry('add');
+  $('btnExport').onclick = exportModal;
+  $('btnGridColor').onclick = gridColorModal;
+  $('btnDelAll').onclick = deleteAllData;
+  $('btnDelProj').onclick = deleteCurrentProject;
+  $('btnSelEdit').onclick = () => startEntry('edit');
+  $('btnSelDel').onclick = deleteSelected;
+  $('btnSelClear').onclick = clearSel;
+  $('enBack').onclick = entryBack;
+  $('btnEnPrev').onclick = entryPrev;
+  $('btnEnNext').onclick = entryNext;
+  $('btnEnSave').onclick = entrySave;
+  bindRowSelection(); bindEntry();
+  $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if ($('modal').classList.contains('open')) closeModal();
+    else if ($('s-work').classList.contains('active') && !$('wsSearchBar').hidden) toggleSearch(false);
+  });
+  window.addEventListener('error', () => toast(t('errGeneric')));
+  window.addEventListener('unhandledrejection', () => toast(t('errGeneric')));
+}
+
+/* ---------- INIT ---------- */
+function init() {
+  try { bindEvents(); } catch (e) { console.error(e); }
+  try { DB = loadAppData(); }
+  catch (e) { console.error(e); showFatal(t('corrupt'), String(e && e.message)); return; }
+  try { applySettings(); applyLang(); renderAuth(); }
+  catch (e) { console.error(e); showFatal(t('errGeneric'), String(e && e.message)); }
+}
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
